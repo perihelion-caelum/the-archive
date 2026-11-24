@@ -1,0 +1,523 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE ARCHIVE — Case Files</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root{
+ --bg:#0b0c0e;--panel:#121417;--panel2:#181b1f;--line:#292d32;
+ --text:#e8e5dc;--muted:#898b8c;--gold:#c5a46d;--red:#9d5353;
+ --green:#7f9b82;--blue:#7895a8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{display:grid;grid-template-columns:245px 1fr;min-height:100vh}
+.sidebar{background:#0e1012;border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;gap:24px}
+.brand{font-family:'Playfair Display',serif;font-size:27px;letter-spacing:4px;color:var(--gold)}
+.brand small{display:block;font:10px 'DM Mono';letter-spacing:3px;color:var(--muted);margin-top:7px}
+.case-stamp{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:15px 0;color:var(--muted);font-size:10px;line-height:2}
+.nav{display:grid;gap:6px}
+.nav button{border:1px solid transparent;background:none;color:var(--muted);text-align:left;padding:12px;border-radius:3px}
+.nav button:hover,.nav button.active{background:var(--panel2);border-color:var(--line);color:var(--gold)}
+.nav button span{display:inline-block;width:27px;color:var(--gold)}
+.side-bottom{margin-top:auto;color:var(--muted);font-size:10px;line-height:1.8}
+main{padding:34px clamp(18px,4vw,55px);max-width:1400px;width:100%;margin:auto}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:28px}
+.eyebrow{font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.status{color:var(--muted);font-size:10px}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:500}
+h1{font-size:clamp(32px,5vw,53px);margin:8px 0 12px;line-height:1.1}
+h2{font-size:27px;margin:0 0 14px}
+h3{font-size:19px;margin:0 0 10px}
+p{line-height:1.8;color:#b6b6b0}
+.muted{color:var(--muted)}
+.gold{color:var(--gold)}
+.hero{padding:30px 0 34px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero p{max-width:650px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);padding:20px;border-radius:3px}
+.case-card{position:relative;min-height:235px;display:flex;flex-direction:column;overflow:hidden}
+.case-card:after{content:attr(data-number);position:absolute;right:12px;bottom:-30px;font:100px 'Playfair Display';color:#ffffff08}
+.case-card p{font-size:12px}
+.case-card .bottom{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tag{font-size:9px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
+.btn{background:var(--gold);border:1px solid var(--gold);color:#111;padding:11px 15px;border-radius:2px;font-weight:500}
+.btn:hover{filter:brightness(1.12)}
+.btn.secondary{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.secondary:hover{border-color:var(--gold);color:var(--gold)}
+.btn.danger{background:transparent;border-color:#754343;color:#d18b8b}
+.btn.small{padding:7px 10px;font-size:11px}
+button:disabled{opacity:.35;cursor:not-allowed}
+.case-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.case-number{font-size:11px;letter-spacing:2px;color:var(--gold)}
+.case-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,.8fr);gap:16px}
+.stack{display:grid;gap:14px;align-content:start}
+.clue,.person,.event{padding:14px;border:1px solid var(--line);background:var(--panel2);margin:8px 0;border-radius:2px}
+.clue p,.person p{font-size:11px;margin:6px 0}
+.clue-head{display:flex;justify-content:space-between;gap:12px}
+.clue button{margin-top:8px}
+textarea,input{width:100%;background:#0c0e10;border:1px solid var(--line);color:var(--text);padding:12px;outline:none;border-radius:2px}
+textarea:focus,input:focus{border-color:var(--gold)}
+textarea{min-height:80px;resize:vertical}
+label{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;margin:15px 0 7px;text-transform:uppercase}
+select{width:100%;background:#0c0e10;color:var(--text);border:1px solid var(--line);padding:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-block;padding:5px 8px;border:1px solid var(--line);color:var(--muted);font-size:9px;letter-spacing:1px}
+.pill.done{color:var(--green);border-color:#405746}
+.pill.selected{color:var(--gold);border-color:var(--gold)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:20px 0}
+.tabs button{background:transparent;border:1px solid var(--line);color:var(--muted);padding:9px 12px}
+.tabs button.active{border-color:var(--gold);color:var(--gold)}
+.progress{height:4px;background:#25292d;margin:12px 0 20px}
+.progress div{height:100%;background:var(--gold);width:0;transition:.2s}
+.note{padding:13px;border-left:2px solid var(--gold);background:#171717;color:#c5c2b9;line-height:1.7;font-size:11px}
+.timeline-item{display:flex;gap:12px;align-items:center}
+.timeline-item .event{flex:1}
+.timeline-item .controls{display:grid;gap:5px}
+.timeline-item button{background:transparent;border:1px solid var(--line);color:var(--gold);padding:5px 8px}
+.option{display:block;text-align:left;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:13px;margin:8px 0}
+.option:hover,.option.chosen{border-color:var(--gold);color:var(--gold)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);padding:18px}
+.stat strong{display:block;font:30px 'Playfair Display';color:var(--gold);margin-bottom:6px}
+hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+footer{margin-top:45px;border-top:1px solid var(--line);padding-top:15px;color:var(--muted);font-size:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.toast{position:fixed;bottom:20px;right:20px;background:#20251f;border:1px solid #536b52;padding:13px 18px;color:#c6d7c2;display:none;z-index:10;max-width:300px}
+.empty{padding:25px;border:1px dashed var(--line);color:var(--muted);text-align:center;line-height:1.8}
+@media(max-width:760px){
+ .shell{grid-template-columns:1fr}
+ .sidebar{padding:15px;gap:13px;border-right:0;border-bottom:1px solid var(--line)}
+ .brand{font-size:22px}
+ .case-stamp,.side-bottom{display:none}
+ .nav{display:flex;overflow-x:auto}
+ .nav button{white-space:nowrap;padding:9px}
+ main{padding:22px 16px}
+ .case-layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+ <div class="brand">THE ARCHIVE<small>RESTRICTED INVESTIGATION DIVISION</small></div>
+ <div class="case-stamp">ARCHIVE ACCESS: GRANTED<br>DIVISION: UNRESOLVED CASES<br>CLASSIFICATION: CONFIDENTIAL</div>
+ <nav class="nav">
+  <button class="active" data-page="home"><span>01</span> Case Directory</button>
+  <button data-page="evidence"><span>02</span> Evidence Board</button>
+  <button data-page="interviews"><span>03</span> Interrogations</button>
+  <button data-page="timeline"><span>04</span> Timeline</button>
+  <button data-page="report"><span>05</span> Final Report</button>
+  <button data-page="profile"><span>06</span> Investigator</button>
+ </nav>
+ <div class="side-bottom">THE ARCHIVE / EST. 1987<br>ALL CASES ARE FICTIONAL<br>VERSION 3.0 — NOIR EXPANSION</div>
+</aside>
+
+<main>
+ <div class="topline">
+  <div class="eyebrow" id="page-label">ARCHIVE / CASE DIRECTORY</div>
+  <div class="status" id="save-status">LOCAL FILE SYSTEM · SAVED</div>
+ </div>
+ <div id="app"></div>
+ <footer><span>THE ARCHIVE © 2026 · FICTIONAL INVESTIGATION EXPERIENCE</span><span>DO NOT TRUST THE FIRST ACCOUNT.</span></footer>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CASES = [
+{
+ id:"c1", number:"001", title:"The Silent Observatory", genre:"ASTRONOMICAL MYSTERY",
+ intro:"An astronomer vanished from a locked observatory. The telescope was still pointed at the sky. The observation log, however, tells a different story.",
+ scene:"Blackridge Observatory · 14 October · 23:00–00:30",
+ description:"Dr. Elias Voss was last seen working alone. The observatory door was locked from the inside when security arrived. No sign of forced entry was found.",
+ clues:[
+  ["log","Observation log","The final entry is marked 23:47. A handwritten correction in the margin reads: “five minutes slow.”"],
+  ["key","Key register","The observatory's spare key was signed out at 23:20 by the caretaker. It was returned at 00:05."],
+  ["letter","Unsent note","A note addressed to the director reads: “The readings are not wrong. The clock is.”"],
+  ["photo","Control room photograph","A wall clock is visible behind the telescope. Its hands show 23:47."],
+  ["caretaker","Caretaker statement","The caretaker insists the corridor clock was accurate. He says he never entered the observatory."]
+ ],
+ people:[
+  {name:"Mara Ellison",role:"Research assistant",questions:[
+   ["What was Elias working on?","He was comparing two observation sets. He believed one had been recorded at the wrong time.","letter"],
+   ["Did he trust the observatory clock?","Not at all. He had complained about it earlier that evening.","photo"]
+  ]},
+  {name:"Arthur Bell",role:"Night caretaker",questions:[
+   ["When did you last see Elias?","Around 23:20. He was alone, and the spare key was with me afterward.","key"],
+   ["Was the clock repaired?","I adjusted it earlier, but I cannot guarantee it stayed accurate.","log"]
+  ]}
+ ],
+ events:[
+  {time:"23:20",text:"Caretaker signs out the spare key.",order:1},
+  {time:"23:47",text:"Observation log receives its final entry.",order:3},
+  {time:"23:42",text:"The corrected observation time.",order:2},
+  {time:"00:05",text:"Spare key is returned.",order:4}
+ ],
+ answer:"2352",
+ puzzle:"The observatory clock was five minutes slow. The final entry appears at 23:47 on that clock. What was the actual time?",
+ options:[
+  "The clock was five minutes slow; the actual observation time was 23:52.",
+  "The clock was five minutes fast; the actual observation time was 23:42.",
+  "The entry was made at midnight."
+ ],
+ correct:0,
+ resolution:"The final observation was recorded at 23:52, not 23:47. The discrepancy explains the misleading sequence of events. The evidence establishes a false timeline, but does not prove what happened to Elias after the observation."
+},
+{
+ id:"c2",number:"002",title:"Room 309",genre:"HOTEL MYSTERY",
+ intro:"A guest checked into Room 309. The receptionist remembers him. The housekeeping register records the room as vacant. And the elevator never stopped on the third floor that night.",
+ scene:"The Orpheum Hotel · 6 November · 20:00–23:00",
+ description:"A man registered under the name Adrian Vale and requested Room 309. By morning, there was no luggage, no checkout record and no sign that the room had been used.",
+ clues:[
+  ["register","Guest register","Adrian Vale signed in at 20:12. The handwriting is unusually careful. The room number is clearly 309."],
+  ["lift","Elevator maintenance log","The elevator was out of service from 20:00 until 22:30. The notice was posted beside the lobby desk."],
+  ["house","Housekeeping sheet","Room 309 was marked vacant at 21:00. The attendant says the sheet was filled in before the floor inspection."],
+  ["key","Key cabinet record","A spare key for Room 309 was removed at 20:18. It was returned at 22:06."],
+  ["stair","Stairwell note","A delivery worker remembers hearing footsteps on the third-floor staircase at approximately 20:30."]
+ ],
+ people:[
+  {name:"Nora Wells",role:"Night receptionist",questions:[
+   ["Did you see the guest?","Yes. He arrived alone and asked specifically for Room 309.","register"],
+   ["Was the elevator working?","No. The maintenance notice was already up. Guests had to use the stairs.","lift"]
+  ]},
+  {name:"Peter Shaw",role:"Housekeeping attendant",questions:[
+   ["Did you enter Room 309?","I marked it vacant before checking the floor. I was told not to disturb the guest.","house"],
+   ["Who had the spare key?","The night manager took it. I saw it returned later that evening.","key"]
+  ]}
+ ],
+ events:[
+  {time:"20:12",text:"Adrian Vale signs the guest register.",order:1},
+  {time:"20:30",text:"Footsteps are heard on the third-floor staircase.",order:2},
+  {time:"22:06",text:"The spare Room 309 key is returned.",order:3},
+  {time:"22:30",text:"Elevator maintenance period ends.",order:4}
+ ],
+ answer:"2206",
+ puzzle:"The guest arrived at 20:12. The spare key was returned at 22:06. How long after check-in was the key returned? Enter the duration in minutes.",
+ options:[
+  "114 minutes. The key record establishes a window, not proof that the guest left.",
+  "94 minutes. The guest must have used the elevator.",
+  "126 minutes. The room was definitely empty at 21:00."
+ ],
+ correct:0,
+ resolution:"The key was returned 114 minutes after check-in. The elevator was unavailable, so the staircase was the only documented route to the third floor. The housekeeping sheet was completed before inspection, making its 'vacant' entry unreliable. The guest's identity and final destination remain unverified."
+},
+{
+ id:"c3",number:"003",title:"The Clockmaker's Secret",genre:"CHRONOLOGICAL MYSTERY",
+ intro:"A clockmaker's final creation stopped at precisely the wrong time. Every clock in his workshop tells a different story.",
+ scene:"Wren & Sons Workshop · 2 December · 03:00–05:00",
+ description:"Clockmaker Henry Wren was found absent from his workshop. His final mechanism was left unfinished. Four clocks stopped at four different times.",
+ clues:[
+  ["bench","Workbench note","A note reads: “The master clock runs six minutes fast. Never use it to set the others.”"],
+  ["pocket","Pocket watch","The watch stopped at 04:26. Its repair label says it was synchronised with the master clock."],
+  ["ledger","Workshop ledger","The last entry is recorded at 04:14. A second hand has written: “corrected time.”"],
+  ["window","Window latch","The workshop window was latched from the inside. Dust on the sill appears undisturbed."],
+  ["letter","Supplier's letter","A supplier confirms that a replacement gear was delivered at 04:10, but nobody signed for it."]
+ ],
+ people:[
+  {name:"Edwin Wren",role:"Nephew",questions:[
+   ["Was the master clock reliable?","No. Henry always said it ran six minutes fast.","bench"],
+   ["What was Henry repairing?","A pocket watch. He was very particular about its timing.","pocket"]
+  ]},
+  {name:"June Mercer",role:"Supplier",questions:[
+   ["When was the gear delivered?","At 04:10. I left it at the workshop entrance.","letter"],
+   ["Did Henry collect it?","I did not see him. I only heard movement inside.","ledger"]
+  ]}
+ ],
+ events:[
+  {time:"04:10",text:"Replacement gear is delivered.",order:1},
+  {time:"04:14",text:"Ledger entry is made on the corrected clock.",order:2},
+  {time:"04:20",text:"Corrected time corresponding to the pocket watch.",order:3},
+  {time:"04:26",text:"Pocket watch display stops.",order:4}
+ ],
+ answer:"0420",
+ puzzle:"The pocket watch was synchronised to a master clock that ran six minutes fast. It stopped at 04:26. What was the corrected time?",
+ options:[
+  "04:20. Subtract six minutes from the displayed time.",
+  "04:32. Add six minutes to the displayed time.",
+  "04:14. The ledger time must be the answer."
+ ],
+ correct:0,
+ resolution:"The pocket watch displayed 04:26, but the master clock ran six minutes fast. The corrected time was 04:20. The workshop records were not all using the same reference clock, so their apparent order was misleading."
+},
+{
+ id:"c4",number:"004",title:"The 11:17 Departure",genre:"RAILWAY MYSTERY",
+ intro:"A train appears in an old railway register, but no official timetable lists it. Three witnesses remember seeing it. Their accounts contradict one another.",
+ scene:"Ashcombe Station · 17 January · 10:30–12:00",
+ description:"An entry for a departure at 11:17 appears in a station register. The public timetable lists no train at that time. The signal operator denies authorising a passenger service.",
+ clues:[
+  ["register","Station register","A handwritten entry records a departure at 11:17. The destination column has been left blank."],
+  ["signal","Signal operator's log","A green signal was recorded at 11:15. The log classifies the movement as a non-passenger service."],
+  ["ticket","Ticket office report","No tickets were sold or scanned for a train departing at 11:17."],
+  ["witness","Witness statement","A porter saw a train pass Platform 2 at approximately 11:17. He could not identify its markings."],
+  ["freight","Freight schedule","A maintenance freight movement was authorised for the Ashcombe line that morning. Its departure time was amended by hand."]
+ ],
+ people:[
+  {name:"Miriam Cole",role:"Station clerk",questions:[
+   ["Was there a scheduled passenger train?","No. Nothing in the public timetable matched that entry.","ticket"],
+   ["Who wrote in the register?","The duty supervisor usually made those entries. I cannot identify the handwriting.","register"]
+  ]},
+  {name:"Jonas Reed",role:"Signal operator",questions:[
+   ["What did the green signal authorise?","A movement on the line. It does not automatically mean a passenger train.","signal"],
+   ["Was there freight traffic?","There was a maintenance movement scheduled that morning.","freight"]
+  ]}
+ ],
+ events:[
+  {time:"10:55",text:"Maintenance freight movement is authorised.",order:1},
+  {time:"11:15",text:"Signal log records a green signal.",order:2},
+  {time:"11:17",text:"A train passes Platform 2.",order:3},
+  {time:"11:24",text:"Porter files a witness note.",order:4}
+ ],
+ answer:"1117",
+ puzzle:"The register records the disputed departure at what exact time? Enter four digits using the 24-hour clock.",
+ options:[
+  "11:17. The movement was recorded, but it was not listed as a passenger service.",
+  "10:55. The freight authorisation proves the train departed then.",
+  "11:24. The witness report is the official departure record."
+ ],
+ correct:0,
+ resolution:"The disputed movement took place at 11:17. The signal log and freight schedule indicate a non-passenger maintenance movement, which explains why it was absent from the public timetable. The evidence does not establish the exact cargo or destination."
+}
+];
+
+const STORAGE="theArchive_v3";
+let state=load();
+let page="home";
+let current=CASES[0].id;
+let selected=[];
+let chosenConclusion={};
+let activeReport={};
+
+function fresh(){
+ return {solved:[],collected:{},asked:{},connections:{},timeline:{},reports:{},notes:[],rank:"Archivist"};
+}
+function load(){
+ try{return {...fresh(),...JSON.parse(localStorage.getItem(STORAGE)||"{}")}}catch(e){return fresh()}
+}
+function save(){
+ localStorage.setItem(STORAGE,JSON.stringify(state));
+ document.getElementById("save-status").textContent="LOCAL FILE SYSTEM · SAVED";
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function getCase(){return CASES.find(c=>c.id===current)||CASES[0]}
+function collected(id){return state.collected[id]||[]}
+function isSolved(id){return state.solved.includes(id)}
+function toast(msg){
+ const el=document.getElementById("toast");el.textContent=msg;el.style.display="block";
+ setTimeout(()=>el.style.display="none",2400);
+}
+function setPage(p){
+ page=p;selected=[];
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+ const labels={home:"ARCHIVE / CASE DIRECTORY",evidence:"INVESTIGATION / EVIDENCE BOARD",interviews:"INVESTIGATION / INTERROGATIONS",timeline:"INVESTIGATION / TIMELINE",report:"INVESTIGATION / FINAL REPORT",profile:"PERSONNEL / INVESTIGATOR DOSSIER"};
+ document.getElementById("page-label").textContent=labels[p];
+ render();
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
+
+function openCase(id){
+ current=id;setPage("home");
+}
+function collect(id){
+ const c=getCase();const arr=collected(c.id);
+ if(!arr.includes(id)){arr.push(id);state.collected[c.id]=arr;save();toast("Evidence added to your archive.");}
+ render();
+}
+function ask(ci,qi){
+ const c=getCase(),person=c.people[ci],q=person.questions[qi];
+ state.asked[c.id]=state.asked[c.id]||[];
+ const key=ci+"-"+qi;
+ if(!state.asked[c.id].includes(key))state.asked[c.id].push(key);
+ if(q[2]){state.collected[c.id]=collected(c.id);if(!state.collected[c.id].includes(q[2]))state.collected[c.id].push(q[2]);}
+ save();toast("Interview response recorded.");render();
+}
+function addConnection(){
+ if(selected.length!==2){toast("Select exactly two pieces of evidence.");return}
+ const c=getCase(),key=selected.slice().sort().join("|");
+ state.connections[c.id]=state.connections[c.id]||{};
+ const reason=document.getElementById("connection-reason")?.value.trim()||"Connection recorded.";
+ state.connections[c.id][key]=reason;selected=[];save();toast("Connection added to the board.");render();
+}
+function toggleClue(id){
+ selected=selected.includes(id)?selected.filter(x=>x!==id):[...selected,id].slice(-2);
+ render();
+}
+function eventsFor(c){
+ if(!state.timeline[c.id])state.timeline[c.id]=c.events.map((e,i)=>i);
+ return state.timeline[c.id];
+}
+function moveEvent(index,dir){
+ const c=getCase(),arr=eventsFor(c),next=index+dir;
+ if(next<0||next>=arr.length)return;
+ [arr[index],arr[next]]=[arr[next],arr[index]];
+ save();render();
+}
+function timelineCorrect(c){
+ const arr=eventsFor(c);
+ return arr.every((v,i)=>i===0||c.events[arr[i-1]].order<=c.events[v].order);
+}
+function submitReport(){
+ const c=getCase();
+ const answer=(document.getElementById("answer")?.value||"").replace(/\s/g,"");
+ const conclusion=Number(document.getElementById("conclusion")?.value);
+ const evidenceCount=collected(c.id).length;
+ const correctAnswer=answer===c.answer;
+ const correctConclusion=conclusion===c.correct;
+ const correctTimeline=timelineCorrect(c);
+ if(!correctAnswer||!correctConclusion||!correctTimeline||evidenceCount<3){
+  let reasons=[];
+  if(!correctAnswer)reasons.push("Check your calculation or time entry.");
+  if(!correctConclusion)reasons.push("Your deduction does not match the evidence.");
+  if(!correctTimeline)reasons.push("The timeline still contains an ordering error.");
+  if(evidenceCount<3)reasons.push("Collect at least three pieces of evidence.");
+  toast(reasons.join(" "));
+  return;
+ }
+ if(!isSolved(c.id))state.solved.push(c.id);
+ state.reports[c.id]={submitted:true,answer,conclusion,solvedAt:new Date().toISOString()};
+ save();render();toast("CASE REVIEWED. REPORT ACCEPTED.");
+}
+function addNote(){
+ const v=document.getElementById("journal-note").value.trim();
+ if(!v)return;
+ state.notes.push({case:current,text:v,date:new Date().toLocaleDateString()});
+ save();render();toast("Journal entry saved.");
+}
+function exportData(){
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="the-archive-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importData(input){
+ const file=input.files[0];if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const data=JSON.parse(reader.result);
+   if(!Array.isArray(data.solved)||typeof data.collected!=="object")throw Error();
+   state={...fresh(),...data};save();render();toast("Archive backup restored.");
+  }catch(e){toast("That backup file could not be read.");}
+ };
+ reader.readAsText(file);
+}
+function resetData(){
+ if(!confirm("Erase all local progress, reports, connections and notes? This cannot be undone."))return;
+ state=fresh();save();render();toast("Local archive reset.");
+}
+
+function render(){
+ const app=document.getElementById("app");
+ if(page==="home")app.innerHTML=homePage();
+ if(page==="evidence")app.innerHTML=evidencePage();
+ if(page==="interviews")app.innerHTML=interviewPage();
+ if(page==="timeline")app.innerHTML=timelinePage();
+ if(page==="report")app.innerHTML=reportPage();
+ if(page==="profile")app.innerHTML=profilePage();
+}
+function homePage(){
+ const solved=state.solved.length;
+ return `<section class="hero">
+ <div class="eyebrow">RESTRICTED FILES · VOL. III</div>
+ <h1>Every mystery<br>leaves a trace.</h1>
+ <p>Four unresolved cases. Four separate truths. Your task is not to believe the first account — it is to examine what remains, question what was said, and reconstruct what happened.</p>
+ <div class="row"><span class="pill">${solved} / 4 CASES SOLVED</span><span class="pill">NOIR EXPANSION</span><span class="pill">LOCAL SAVE ACTIVE</span></div>
+ </section>
+ <div class="case-head"><div><div class="eyebrow">THE CASE DIRECTORY</div><h2>Open investigations</h2></div><span class="muted">${solved===4?"ALL FILES REVIEWED":"SELECT A FILE TO BEGIN"}</span></div>
+ <div class="grid">${CASES.map(c=>`<article class="card case-card" data-number="${c.number}">
+ <div class="tag">CASE ${c.number} · ${c.genre}</div>
+ <h2 style="margin-top:16px">${c.title}</h2><p>${c.intro}</p>
+ <div class="bottom"><span class="pill ${isSolved(c.id)?"done":""}">${isSolved(c.id)?"REPORT ACCEPTED":"OPEN FILE"}</span><button class="btn small" onclick="openCase('${c.id}')">Open case →</button></div>
+ </article>`).join("")}</div>
+ <div class="card" style="margin-top:16px"><div class="eyebrow">INVESTIGATOR'S REMINDER</div><p>Evidence can be incomplete. Witnesses can be mistaken. A timeline can be misleading. Your final report must distinguish what the evidence proves from what it merely suggests.</p></div>`;
+}
+function casePicker(){
+ return `<div class="tabs">${CASES.map(c=>`<button class="${c.id===current?"active":""}" onclick="current='${c.id}';selected=[];render()">${c.number} · ${c.title}</button>`).join("")}</div>`;
+}
+function caseHeader(c){
+ return `<div class="case-head"><div><div class="case-number">CASE ${c.number} / ${c.genre}</div><h1>${c.title}</h1><p>${c.scene}</p></div><span class="pill ${isSolved(c.id)?"done":""}">${isSolved(c.id)?"SOLVED":"ACTIVE FILE"}</span></div>
+ <div class="note">${c.description}</div>`;
+}
+function evidencePage(){
+ const c=getCase(),ids=collected(c.id),connections=state.connections[c.id]||{};
+ return `${casePicker()}${caseHeader(c)}
+ <div class="case-layout" style="margin-top:18px">
+ <section class="card"><div class="eyebrow">AVAILABLE EVIDENCE</div><h2>Case documents</h2>
+ ${c.clues.map(cl=>`<div class="clue"><div class="clue-head"><strong>${cl[1]}</strong><span class="pill ${ids.includes(cl[0])?"done":""}">${ids.includes(cl[0])?"COLLECTED":"UNREVIEWED"}</span></div><p>${ids.includes(cl[0])?cl[2]:"This document has not yet been examined."}</p><button class="btn small ${ids.includes(cl[0])?"secondary":""}" onclick="collect('${cl[0]}')" ${ids.includes(cl[0])?"disabled":""}>${ids.includes(cl[0])?"In archive":"Examine document"}</button></div>`).join("")}
+ </section>
+ <section class="stack">
+ <div class="card"><div class="eyebrow">EVIDENCE BOARD</div><h3>Connect the clues</h3><p>Select two collected documents to record a connection. Explain why they matter together.</p>
+ <div class="row">${ids.length?c.clues.filter(x=>ids.includes(x[0])).map(x=>`<button class="btn small ${selected.includes(x[0])?"":"secondary"}" onclick="toggleClue('${x[0]}')">${selected.includes(x[0])?"✓ ":""}${x[1]}</button>`).join(""):'<span class="muted">No evidence collected yet.</span>'}</div>
+ <label>Reason for connection</label><textarea id="connection-reason" placeholder="What do these two clues suggest?"></textarea>
+ <button class="btn" style="margin-top:10px" onclick="addConnection()" ${ids.length<2?"disabled":""}>Record connection</button>
+ </div>
+ <div class="card"><div class="eyebrow">RECORDED CONNECTIONS</div><h3>${Object.keys(connections).length} connections</h3>
+ ${Object.entries(connections).map(([k,v])=>`<div class="clue"><strong>${k.split("|").map(id=>c.clues.find(x=>x[0]===id)?.[1]||id).join(" + ")}</strong><p>${esc(v)}</p></div>`).join("")||'<p class="muted">No connections recorded. The board is yours to build.</p>'}
+ </div>
+ <div class="card"><div class="eyebrow">CASE PROGRESS</div><strong class="gold">${ids.length} / ${c.clues.length}</strong><p>Documents examined</p><div class="progress"><div style="width:${ids.length/c.clues.length*100}%"></div></div></div>
+ </section></div>`;
+}
+function interviewPage(){
+ const c=getCase(),asked=state.asked[c.id]||[];
+ return `${casePicker()}${caseHeader(c)}
+ <div class="grid" style="margin-top:18px">${c.people.map((p,ci)=>`<section class="card"><div class="eyebrow">PERSON OF INTEREST ${ci+1}</div><h2>${p.name}</h2><span class="pill">${p.role}</span>
+ ${p.questions.map((q,qi)=>{const key=ci+"-"+qi,done=asked.includes(key);return `<div class="person"><strong>${q[0]}</strong>${done?`<p>${q[1]}</p><span class="pill done">RECORDED</span>`:`<p class="muted">Response not yet recorded.</p><button class="btn small" onclick="ask(${ci},${qi})">Ask question</button>`}</div>`}).join("")}
+ </section>`).join("")}</div>
+ <div class="note" style="margin-top:16px">Interview answers may unlock additional evidence. Compare statements with documents before drawing conclusions.</div>`;
+}
+function timelinePage(){
+ const c=getCase(),arr=eventsFor(c);
+ return `${casePicker()}${caseHeader(c)}
+ <section class="card" style="margin-top:18px"><div class="eyebrow">RECONSTRUCTION ROOM</div><h2>Put events in order.</h2><p>The records have been shuffled. Use the arrows to arrange them from earliest to latest. Read the evidence carefully — displayed times may not always be reliable.</p>
+ ${arr.map((idx,i)=>`<div class="timeline-item"><div class="event"><div class="tag">POSITION ${String(i+1).padStart(2,"0")}</div><strong>${c.events[idx].time}</strong><p>${c.events[idx].text}</p></div><div class="controls"><button onclick="moveEvent(${i},-1)" ${i===0?"disabled":""}>↑</button><button onclick="moveEvent(${i},1)" ${i===arr.length-1?"disabled":""}>↓</button></div></div>`).join("")}
+ <div class="row" style="margin-top:16px"><span class="pill ${timelineCorrect(c)?"done":""}">${timelineCorrect(c)?"ORDER VERIFIED":"ORDER NOT VERIFIED"}</span><button class="btn secondary small" onclick="state.timeline['${c.id}']=${JSON.stringify(c.events.map((e,i)=>i))};save();render()">Reset sequence</button></div>
+ </section>`;
+}
+function reportPage(){
+ const c=getCase(),ids=collected(c.id),solved=isSolved(c.id);
+ return `${casePicker()}${caseHeader(c)}
+ <div class="case-layout" style="margin-top:18px">
+ <section class="card"><div class="eyebrow">FINAL REVIEW</div><h2>Submit your deduction.</h2>
+ <p>${c.puzzle}</p>
+ <label>Enter your answer</label><input id="answer" placeholder="Your answer..." autocomplete="off">
+ <label>Select your conclusion</label>
+ ${c.options.map((o,i)=>`<button class="option" onclick="document.querySelectorAll('.option').forEach(x=>x.classList.remove('chosen'));this.classList.add('chosen');document.getElementById('conclusion').value='${i}'">${o}</button>`).join("")}
+ <input type="hidden" id="conclusion" value="">
+ <hr><div class="row"><span class="pill">${ids.length} EVIDENCE COLLECTED</span><span class="pill ${timelineCorrect(c)?"done":""}">${timelineCorrect(c)?"TIMELINE VERIFIED":"TIMELINE INCOMPLETE"}</span></div>
+ <button class="btn" style="margin-top:18px" onclick="submitReport()">Submit final report</button>
+ ${solved?'<p class="gold">✓ This case has been successfully reviewed.</p>':""}
+ </section>
+ <section class="stack"><div class="card"><div class="eyebrow">REVIEW CHECKLIST</div><h3>Before submitting</h3>
+ <p>${ids.length>=3?"✓":"○"} Examine at least three documents</p>
+ <p>${timelineCorrect(c)?"✓":"○"} Reconstruct the timeline correctly</p>
+ <p>○ Solve the case calculation</p><p>○ Select the supported conclusion</p>
+ </div>
+ <div class="card"><div class="eyebrow">INVESTIGATOR'S NOTE</div><p>A strong report does not invent certainty. If a detail remains unknown, say so. The best deduction is the one the evidence can support.</p></div>
+ </section></div>`;
+}
+function profilePage(){
+ const solved=state.solved.length,allCollected=Object.values(state.collected).reduce((n,a)=>n+(a||[]).length,0);
+ const connections=Object.values(state.connections).reduce((n,a)=>n+Object.keys(a||{}).length,0);
+ const ranks=["Archivist","Observer","Evidence Analyst","Senior Investigator","Chief Investigator"];
+ const rank=ranks[Math.min(solved,4)];
+ state.rank=rank;save();
+ return `<section class="hero"><div class="eyebrow">PERSONNEL FILE / ${rank.toUpperCase()}</div><h1>Investigator dossier.</h1><p>Your record is built from the cases you solve, evidence you examine and connections you document.</p></section>
+ <div class="stat-grid">
+ <div class="stat"><strong>${solved}/4</strong><span class="muted">Cases solved</span></div>
+ <div class="stat"><strong>${allCollected}</strong><span class="muted">Documents examined</span></div>
+ <div class="stat"><strong>${connections}</strong><span class="muted">Evidence connections</span></div>
+ <div class="stat"><strong>${state.notes.length}</strong><span class="muted">Journal entries</span></div>
+ </div>
+ <div class="card" style="margin-top:16px"><div class="eyebrow">INVESTIGATOR'S JOURNAL</div><h2>Private notes</h2><label>New entry</label><textarea id="journal-note" placeholder="Record a theory, observation or question..."></textarea><button class="btn" style="margin-top:10px" onclick="addNote()">Save journal entry</button>
+ <hr><h3>Previous entries</h3>${state.notes.slice().reverse().map(n=>`<div class="clue"><span class="tag">${esc(n.date)} · ${CASES.find(c=>c.id===n.case)?.title||"Archive"}</span><p>${esc(n.text)}</p></div>`).join("")||'<p class="muted">Your journal is empty.</p>'}
+ </div>
+ <div class="card" style="margin-top:16px"><div class="eyebrow">ARCHIVE MANAGEMENT</div><h3>Backup & restore</h3><p>Export a copy of your local progress. Import it later to restore your cases, notes and connections.</p><div class="row"><button class="btn secondary" onclick="exportData()">Export archive (.json)</button><label class="btn secondary" style="margin:0;cursor:pointer">Import backup<input type="file" accept=".json,application/json" onchange="importData(this)" style="display:none"></label><button class="btn danger" onclick="resetData()">Reset all progress</button></div></div>`;
+}
+render();
+</script>
+</body>
+</html>
